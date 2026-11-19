@@ -1,0 +1,301 @@
+<!doctype html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org"
+      th:replace="fragments/layout :: layout('Cadastros', 'admin-options', ~{::section})">
+<section>
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+        <div>
+            <h1 class="h3 mb-1">Cadastros</h1>
+            <div class="text-muted">Somente o administrador pode cadastrar novas op&ccedil;&otilde;es. Os valores est&atilde;o separados por tipo de cadastro.</div>
+        </div>
+    </div>
+
+    <div class="alert alert-success" th:if="${success != null}" th:text="${success}"></div>
+    <div class="alert alert-danger" th:if="${error != null}" th:text="${error}"></div>
+
+    <!-- Formularios -->
+    <div class="row g-3 mb-3">
+        <div class="col-12 col-lg-6">
+            <div class="card h-100">
+                <div class="card-header fw-semibold" th:text="${lookupForm.id != null ? 'Editar valor selecionavel' : 'Novo valor selecionavel'}">Novo valor selecionavel</div>
+                <div class="card-body">
+                    <form th:action="@{/admin/cadastros}" th:object="${lookupForm}" method="post">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                        <input type="hidden" th:field="*{id}">
+                        <div class="mb-3">
+                            <label class="form-label">Cadastro</label>
+                            <select class="form-select" th:field="*{category}">
+                                <option value="">Selecione</option>
+                                <option th:each="category : ${lookupCategories}" th:value="${category}" th:text="${category.label}"></option>
+                            </select>
+                            <div class="text-danger small" th:if="${#fields.hasErrors('category')}" th:errors="*{category}"></div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Descricao</label>
+                            <input class="form-control" type="text" th:field="*{label}">
+                            <div class="text-danger small" th:if="${#fields.hasErrors('label')}" th:errors="*{label}"></div>
+                        </div>
+                        <div class="form-check form-switch mb-3">
+                            <input class="form-check-input" type="checkbox" role="switch" th:field="*{active}" id="chkActive">
+                            <label class="form-check-label" for="chkActive">Cadastro ativo (aparece nos dropdowns)</label>
+                        </div>
+                        <div class="d-grid gap-2">
+                            <a class="btn btn-outline-secondary" th:if="${lookupForm.id != null}" th:href="@{/admin/cadastros}">Cancelar edicao</a>
+                            <button class="btn btn-primary w-100" type="submit" th:text="${lookupForm.id != null ? 'Salvar alteracoes' : 'Cadastrar valor'}">Cadastrar valor</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-lg-6">
+            <div class="card allow-overflow h-100">
+                <div class="card-header fw-semibold" th:text="${clienteForm.id != null ? 'Editar cliente' : 'Novo cliente'}">Novo cliente</div>
+                <div class="card-body">
+                    <form th:action="@{/admin/cadastros/cliente}" th:object="${clienteForm}" method="post">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                        <input type="hidden" th:field="*{id}">
+                        <div class="mb-3">
+                            <label class="form-label">Nome do cliente</label>
+                            <input class="form-control" type="text" th:field="*{nome}" placeholder="Ex.: Klabin" data-cliente-input="true">
+                            <div class="text-danger small" th:if="${#fields.hasErrors('nome')}" th:errors="*{nome}"></div>
+                            <div class="form-text">Automaticamente em letras maiusculas e sem acentos.</div>
+                        </div>
+                        <div class="d-grid gap-2">
+                            <a class="btn btn-outline-secondary" th:if="${clienteForm.id != null}" th:href="@{/admin/cadastros}">Cancelar edicao</a>
+                            <button class="btn btn-primary w-100" type="submit" th:text="${clienteForm.id != null ? 'Salvar alteracoes' : 'Cadastrar cliente'}">Cadastrar cliente</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Valores por cadastro -->
+    <div class="card mb-3"
+         th:with="activeCat=${lookupForm.category != null ? lookupForm.category : optionGroups[0].category}">
+        <div class="card-header d-flex flex-wrap align-items-center justify-content-between gap-2">
+            <span class="fw-semibold">Valores por cadastro</span>
+            <span class="text-muted small">Escolha uma aba para ver e editar cada tipo de cadastro.</span>
+        </div>
+        <div class="card-body">
+            <ul class="nav nav-tabs flex-wrap gap-1" role="tablist">
+                <li class="nav-item" role="presentation" th:each="group : ${optionGroups}">
+                    <button class="nav-link d-inline-flex align-items-center gap-2"
+                            th:classappend="${group.category == activeCat} ? ' active'"
+                            th:id="'tab-btn-' + ${group.category.name()}"
+                            data-bs-toggle="tab"
+                            th:data-bs-target="'#tab-' + ${group.category.name()}"
+                            th:aria-controls="'tab-' + ${group.category.name()}"
+                            type="button" role="tab">
+                        <span th:text="${group.category.label}">Turno</span>
+                        <span class="badge text-bg-light" th:text="${group.options.size()}">0</span>
+                    </button>
+                </li>
+            </ul>
+
+            <div class="tab-content pt-3">
+                <div class="tab-pane fade"
+                     th:each="group : ${optionGroups}"
+                     th:classappend="${group.category == activeCat} ? ' show active'"
+                     th:id="'tab-' + ${group.category.name()}"
+                     role="tabpanel">
+                    <div class="table-responsive">
+                        <table class="table align-middle mb-0">
+                            <thead>
+                            <tr>
+                                <th>Descricao</th>
+                                <th style="width:90px">Ordem</th>
+                                <th style="width:110px">Status</th>
+                                <th class="text-end">Acoes</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="option : ${group.options}">
+                                <td th:text="${option.label}">64x88</td>
+                                <td th:text="${option.sortOrder}">1</td>
+                                <td th:text="${option.active ? 'Ativo' : 'Inativo'}">Ativo</td>
+                                <td class="text-end">
+                                    <div class="d-inline-flex flex-wrap gap-2 justify-content-end align-items-center">
+                                        <a class="btn btn-sm btn-outline-primary" th:href="@{|/admin/cadastros/${option.id}/editar|}">Editar</a>
+                                        <form class="d-inline-flex gap-2 align-items-center merge-form"
+                                              th:action="@{|/admin/cadastros/${option.id}/mesclar|}" method="post"
+                                              th:data-label="${option.label}">
+                                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                                            <select class="form-select form-select-sm" name="targetId" style="min-width:180px;width:auto" th:required="required">
+                                                <option value="">Unir em...</option>
+                                                <option th:each="other : ${group.options}"
+                                                        th:if="${other.id != option.id}"
+                                                        th:value="${other.id}"
+                                                        th:text="${other.label}"></option>
+                                            </select>
+                                            <button class="btn btn-sm btn-outline-warning btn-merge" type="submit">Mesclar</button>
+                                        </form>
+                                        <form th:action="@{|/admin/cadastros/${option.id}/excluir|}" method="post" onsubmit="return confirm('Deseja excluir este cadastro?');">
+                                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                                            <button class="btn btn-sm btn-outline-danger" type="submit">Excluir</button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(group.options)}">
+                                <td colspan="4" class="text-center text-muted py-4">Nenhum valor cadastrado neste cadastro.</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Clientes -->
+    <div class="card mb-3">
+        <div class="card-header d-flex flex-wrap align-items-center justify-content-between gap-2">
+            <span class="fw-semibold">Clientes cadastrados</span>
+            <form class="d-flex flex-wrap gap-2 align-items-center" method="get" th:action="@{/admin/cadastros}">
+                <input type="hidden" name="clientePage" value="0">
+                <label class="small text-muted mb-0">Buscar:</label>
+                <input type="text" class="form-control form-control-sm" name="clienteSearch" style="min-width:180px;width:auto" th:value="${clienteSearch}" placeholder="Nome do cliente...">
+                <label class="small text-muted mb-0">Por pagina:</label>
+                <select class="form-select form-select-sm" name="clienteSize" style="width:auto">
+                    <option value="20"  th:selected="${clientePageSize == 20}">20</option>
+                    <option value="50"  th:selected="${clientePageSize == 50}">50</option>
+                    <option value="100" th:selected="${clientePageSize == 100}">100</option>
+                    <option value="200" th:selected="${clientePageSize == 200}">200</option>
+                </select>
+                <button class="btn btn-sm btn-outline-secondary" type="submit">Aplicar</button>
+            </form>
+        </div>
+        <div class="table-responsive">
+            <table class="table align-middle mb-0">
+                <thead>
+                <tr>
+                    <th>Cliente</th>
+                    <th>Cadastrado em</th>
+                    <th class="text-end">Acoes</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="cliente : ${allClientes}">
+                    <td th:text="${cliente.nome}">KLABIN</td>
+                    <td th:text="${#temporals.format(cliente.criadoEm, 'dd/MM/yyyy HH:mm')}">01/01/2026 00:00</td>
+                    <td class="text-end">
+                        <div class="d-inline-flex gap-2">
+                            <a class="btn btn-sm btn-outline-primary" th:href="@{|/admin/cadastros/cliente/${cliente.id}/editar|}">Editar</a>
+                            <form th:action="@{|/admin/cadastros/cliente/${cliente.id}/excluir|}" method="post" onsubmit="return confirm('Deseja excluir este cliente?');">
+                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                                <button class="btn btn-sm btn-outline-danger" type="submit">Excluir</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(allClientes)}">
+                    <td colspan="3" class="text-center text-muted py-4" th:text="${clienteSearch != null and !#strings.isEmpty(clienteSearch)} ? 'Nenhum cliente encontrado para a busca.' : 'Nenhum cliente cadastrado.'">Nenhum cliente cadastrado.</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <div th:with="startP=(${clienteTotalElements == 0 ? 0 : (clienteCurrentPage * clientePageSize) + 1}),
+                      endCandidate=(${clienteCurrentPage * clientePageSize + clientePageSize}),
+                      endP=(${endCandidate lt clienteTotalElements ? endCandidate : clienteTotalElements})"
+             class="card-footer d-flex flex-wrap align-items-center justify-content-between gap-3">
+            <div class="text-muted small">
+                <span th:if="${clienteTotalElements eq 0}">Nenhum registro.</span>
+                <span th:unless="${clienteTotalElements eq 0}">
+                    Exibindo <span th:text="${startP}">1</span>–<span th:text="${endP}">50</span>
+                    de <span th:text="${clienteTotalElements}">0</span> clientes
+                    — Pagina <span th:text="${clienteCurrentPage + 1}">1</span> de <span th:text="${clienteTotalPages}">1</span>
+                </span>
+            </div>
+            <nav aria-label="Paginacao de clientes">
+                <ul class="pagination pagination-sm mb-0">
+                    <li class="page-item" th:classappend="${!clienteHasPrevious} ? 'disabled'">
+                        <a class="page-link"
+                           th:if="${clienteHasPrevious}"
+                           th:href="@{/admin/cadastros(clientePage=${clienteCurrentPage - 1}, clienteSize=${clientePageSize}, clienteSearch=${clienteSearch})}">&laquo; Anterior</a>
+                        <span class="page-link" th:unless="${clienteHasPrevious}">&laquo; Anterior</span>
+                    </li>
+
+                    <li class="page-item" th:if="${clienteTotalPages > 7 and #lists.isEmpty(clientePaginationWindow) or (not #lists.isEmpty(clientePaginationWindow) and clientePaginationWindow[0] > 0)}">
+                        <a class="page-link" th:href="@{/admin/cadastros(clientePage=0, clienteSize=${clientePageSize}, clienteSearch=${clienteSearch})}">1</a>
+                    </li>
+                    <li class="page-item disabled" th:if="${clienteTotalPages > 7 and not #lists.isEmpty(clientePaginationWindow) and clientePaginationWindow[0] > 1}">
+                        <span class="page-link">&hellip;</span>
+                    </li>
+
+                    <li class="page-item"
+                        th:each="pageIdx : ${clientePaginationWindow}"
+                        th:classappend="${pageIdx == clienteCurrentPage} ? 'active'">
+                        <a class="page-link"
+                           th:text="${pageIdx + 1}"
+                           th:href="@{/admin/cadastros(clientePage=${pageIdx}, clienteSize=${clientePageSize}, clienteSearch=${clienteSearch})}">1</a>
+                    </li>
+
+                    <li class="page-item disabled" th:if="${clienteTotalPages > 7 and not #lists.isEmpty(clientePaginationWindow) and clientePaginationWindow[clientePaginationWindow.size() - 1] < clienteTotalPages - 2}">
+                        <span class="page-link">&hellip;</span>
+                    </li>
+                    <li class="page-item" th:if="${clienteTotalPages > 1 and (not #lists.isEmpty(clientePaginationWindow) and clientePaginationWindow[clientePaginationWindow.size() - 1] < clienteTotalPages - 1)}">
+                        <a class="page-link" th:text="${clienteTotalPages}"
+                           th:href="@{/admin/cadastros(clientePage=${clienteTotalPages - 1}, clienteSize=${clientePageSize}, clienteSearch=${clienteSearch})}">100</a>
+                    </li>
+
+                    <li class="page-item" th:classappend="${!clienteHasNext} ? 'disabled'">
+                        <a class="page-link"
+                           th:if="${clienteHasNext}"
+                           th:href="@{/admin/cadastros(clientePage=${clienteCurrentPage + 1}, clienteSize=${clientePageSize}, clienteSearch=${clienteSearch})}">Proxima &raquo;</a>
+                        <span class="page-link" th:unless="${clienteHasNext}">Proxima &raquo;</span>
+                    </li>
+                </ul>
+            </nav>
+            <form class="d-flex gap-2 align-items-center cliente-ir-form" method="get" th:action="@{/admin/cadastros}">
+                <input type="hidden" name="clienteSize" th:value="${clientePageSize}">
+                <input type="hidden" name="clienteSearch" th:value="${clienteSearch}">
+                <label class="small text-muted mb-0">Ir para pagina:</label>
+                <input type="number" name="clientePage1" min="1" class="form-control form-control-sm" style="width:80px" required>
+                <button class="btn btn-sm btn-outline-secondary" type="submit">Ir</button>
+            </form>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+        document.addEventListener('DOMContentLoaded', function () {
+            document.querySelectorAll('.merge-form').forEach(function (form) {
+                form.addEventListener('submit', function (ev) {
+                    var select = form.querySelector('select[name="targetId"]');
+                    if (!select || !select.value) {
+                        alert('Selecione um item para unir.');
+                        ev.preventDefault();
+                        return;
+                    }
+                    var label = form.getAttribute('data-label') || 'este cadastro';
+                    var targetOption = select.options[select.selectedIndex];
+                    var targetLabel = targetOption ? targetOption.text : 'o item selecionado';
+                    var msg = 'Unir "' + label + '" em "' + targetLabel + '"?\n\n' +
+                        '- Todos os lancamentos, ocorrencias e usuarios associados a "' + label + '" serao movidos para "' + targetLabel + '".\n' +
+                        '- "' + label + '" sera excluido.\n\n' +
+                        'Confirma?';
+                    if (!confirm(msg)) {
+                        ev.preventDefault();
+                    }
+                });
+            });
+            document.querySelectorAll('.cliente-ir-form').forEach(function (form) {
+                form.addEventListener('submit', function (ev) {
+                    var input = form.querySelector('input[name="clientePage1"]');
+                    if (input) {
+                        var v1 = parseInt(input.value, 10);
+                        if (!isNaN(v1) && v1 >= 1) {
+                            var hidden = document.createElement('input');
+                            hidden.type = 'hidden';
+                            hidden.name = 'clientePage';
+                            hidden.value = String(v1 - 1);
+                            form.appendChild(hidden);
+                            input.name = '_ignored';
+                        }
+                    }
+                });
+            });
+        });
+    </script>
+</section>
+</html>

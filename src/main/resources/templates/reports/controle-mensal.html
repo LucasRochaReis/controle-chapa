@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org"
+      th:replace="fragments/layout :: layout(${pageTitle}, ${activeMenu}, ~{::section})">
+<section>
+    <div class="report-page">
+    <div class="d-flex flex-wrap align-items-start justify-content-between gap-3 mb-4">
+        <div>
+            <h1 class="h3 mb-1">Controle Mensal</h1>
+        </div>
+        <div class="d-flex flex-wrap gap-2 no-print">
+            <a class="btn btn-outline-secondary" th:href="@{/relatorios}">&larr; Voltar para Relat&oacute;rios</a>
+            <a class="btn btn-success" th:if="${modoIntervalo}"
+               th:href="@{/relatorios/controle-mensal/excel(dateFrom=${dateFrom}, dateTo=${dateTo})}">Exportar Excel</a>
+            <a class="btn btn-success" th:unless="${modoIntervalo}"
+               th:href="@{/relatorios/controle-mensal/excel(mes=${mes})}">Exportar Excel</a>
+            <button class="btn btn-outline-primary" type="button" onclick="window.print()">Imprimir</button>
+        </div>
+    </div>
+
+    <div class="card mb-4 no-print">
+        <div class="card-header">
+            <ul class="nav nav-tabs card-header-tabs" id="filtroTab" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link"
+                            th:classappend="${not modoIntervalo} ? 'active' : ''"
+                            type="button" data-bs-toggle="tab" data-bs-target="#tab-mes" role="tab" aria-controls="tab-mes" aria-selected="true">Por M&ecirc;s</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link"
+                            th:classappend="${modoIntervalo} ? 'active' : ''"
+                            type="button" data-bs-toggle="tab" data-bs-target="#tab-intervalo" role="tab" aria-controls="tab-intervalo" aria-selected="false">Intervalo Customizado</button>
+                </li>
+            </ul>
+        </div>
+        <div class="card-body">
+            <div class="tab-content" id="filtroTabContent">
+                <div class="tab-pane fade" th:classappend="${not modoIntervalo} ? 'show active' : ''" id="tab-mes" role="tabpanel" aria-labelledby="tab-mes">
+                    <form method="get" th:action="@{/relatorios/controle-mensal}" class="d-flex gap-3 align-items-end flex-wrap">
+                        <div class="flex-grow-1" style="max-width: 420px;">
+                            <label class="form-label">M&ecirc;s da an&aacute;lise:</label>
+                            <select class="form-select" name="mes" onchange="this.form.submit()"
+                                    th:disabled="${!permiteRelatorios}"
+                                    th:title="${permiteRelatorios} ? 'Selecione um m&ecirc;s (gestor/admin/visualizador)' : 'Apenas o m&ecirc;s atual (usu&aacute;rio comum)'">
+                                <option th:each="opt : ${opcoesMeses}" th:value="${opt.value()}" th:text="${opt.label()}"
+                                        th:selected="${mes == opt.value()}"></option>
+                            </select>
+                        </div>
+                        <button class="btn btn-primary" type="submit">Atualizar</button>
+                    </form>
+                </div>
+                <div class="tab-pane fade" th:classappend="${modoIntervalo} ? 'show active' : ''" id="tab-intervalo" role="tabpanel" aria-labelledby="tab-intervalo">
+                    <form method="get" th:action="@{/relatorios/controle-mensal}" class="row g-3 align-items-end mb-0">
+                        <div class="col-12 col-md-4">
+                            <label class="form-label">Data inicial:</label>
+                            <input class="form-control" type="date" name="dateFrom" th:value="${dateFrom}" required>
+                        </div>
+                        <div class="col-12 col-md-4">
+                            <label class="form-label">Data final:</label>
+                            <input class="form-control" type="date" name="dateTo" th:value="${dateTo}" required>
+                        </div>
+                        <div class="col-12 col-md-4 d-flex gap-2">
+                            <button class="btn btn-primary" type="submit">Atualizar</button>
+                            <a class="btn btn-outline-secondary" th:href="@{/relatorios/controle-mensal}">Limpar</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-4 report-section">
+        <div class="card-body">
+            <h2 class="h5 mb-3 text-center">CONTROLE DE CHAPAS
+                <span th:text="${anoStr}">2026</span>
+                 &mdash; CHAPAS BRASPOR</h2>
+            <div class="table-responsive mb-4">
+                <table class="table table-bordered align-middle text-center controle-mensal-tabela">
+                    <thead class="table-light">
+                    <tr>
+                        <th class="col-mes">PER&Iacute;ODO</th>
+                        <th>QUANTIDADE SEM PERDA</th>
+                        <th>PERDA</th>
+                        <th>SOMA</th>
+                        <th>PORCENTAGEM DE PERDA</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                        <td class="fw-bold fs-5" th:text="${periodoCurto}">Julho / 2026</td>
+                        <td class="controle-valor-verde fw-bold fs-5" th:text="${resumo.quantSemPerdaFmt}">16.849</td>
+                        <td class="controle-valor-vermelho fw-bold fs-5" th:text="${resumo.perdaFmt}">737</td>
+                        <td class="fw-bold fs-5" th:text="${resumo.somaFmt}">17.586</td>
+                        <td class="controle-valor-vermelho fw-bold fs-5" th:text="${resumo.pctPerdaFmt} + '%'">4,374%</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="mc-bar-v-wrapper">
+                <h3 class="h6 text-center text-muted mb-3" th:text="${periodoCurto}">Junho / 2026</h3>
+                <div class="mc-bar-v-grid">
+                    <div class="mc-bar-v-col">
+                        <div class="mc-bar-v-bar-wrap">
+                            <div class="mc-bar-v-bar mc-bar-verde"
+                                 th:style="'height:' + ${resumo.quantSemPerda > 0 ? T(java.lang.Math).round(100.0 * resumo.quantSemPerda / (resumo.soma > 0 ? resumo.soma : 1)) : 0} + '%'">
+                                <span class="mc-bar-v-val" th:text="${resumo.quantSemPerdaFmt}">16.849</span>
+                            </div>
+                        </div>
+                        <div class="mc-bar-v-label">QUANTIDADE SEM PERDA</div>
+                    </div>
+                    <div class="mc-bar-v-col">
+                        <div class="mc-bar-v-bar-wrap">
+                            <div class="mc-bar-v-bar mc-bar-vermelho"
+                                 th:style="'height:' + ${resumo.perda > 0 ? T(java.lang.Math).round(100.0 * resumo.perda / (resumo.soma > 0 ? resumo.soma : 1)) : 0} + '%'">
+                                <span class="mc-bar-v-val" th:text="${resumo.perdaFmt}">737</span>
+                            </div>
+                        </div>
+                        <div class="mc-bar-v-label">PERDA</div>
+                    </div>
+                    <div class="mc-bar-v-col">
+                        <div class="mc-bar-v-bar-wrap">
+                            <div class="mc-bar-v-bar mc-bar-azul"
+                                 th:style="'height:' + ${resumo.soma > 0 ? 100 : 0} + '%'">
+                                <span class="mc-bar-v-val" th:text="${resumo.somaFmt}">17.586</span>
+                            </div>
+                        </div>
+                        <div class="mc-bar-v-label">SOMA</div>
+                    </div>
+                    <div class="mc-bar-v-col">
+                        <div class="mc-bar-v-bar-wrap">
+                            <div class="mc-bar-v-bar mc-bar-vermelho-light"
+                                 th:style="'height:' + ${resumo.pctPerda != null ? T(java.lang.Math).round(resumo.pctPerda.doubleValue()) : 0} + '%'">
+                                <span class="mc-bar-v-val" th:text="${resumo.pctPerdaFmt} + '%'">4,374%</span>
+                            </div>
+                        </div>
+                        <div class="mc-bar-v-label">PORCENTAGEM DE PERDA</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card report-section">
+        <div class="card-body">
+            <h2 class="h5 mb-3" th:text="'Chapas Descartadas x Ocorr&ecirc;ncias ' + ${resumo.nomeMesAno} + '.'">Chapas Descartadas x Ocorr&ecirc;ncias Julho/2026.</h2>
+
+            <div class="row g-4">
+                <div class="col-12 col-lg-5">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-bordered align-middle mc-table-codigos">
+                            <thead class="table-light">
+                            <tr>
+                                <th class="mc-codigo-label">TABELA DE C&Oacute;DIGOS</th>
+                                <th class="mc-codigo-total text-center">TOTAL</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="lin : ${tabelaCodigos}">
+                                <td th:text="${lin.label()}">1-erro no ctp</td>
+                                <td class="text-center fw-semibold" th:text="${lin.totalFmt}">4</td>
+                            </tr>
+                            <tr class="mc-total-row fw-bold">
+                                <td>Total</td>
+                                <td class="text-center controle-valor-vermelho fs-6" th:text="${totalPerdasGeralFmt}">737</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="col-12 col-lg-7">
+                    <div class="mc-bar-h-wrapper" th:if="${!#lists.isEmpty(tabelaCodigos)}">
+                        <div class="mc-bar-h-grid">
+                            <div class="mc-bar-h-row" th:each="lin : ${tabelaCodigos}">
+                                <div class="mc-bar-h-label" th:text="${lin.label()}">1-erro no ctp</div>
+                                <div class="mc-bar-h-track">
+                                    <div class="mc-bar-h-bar mc-bar-azul"
+                                         th:style="'width:' + ${lin.total() > 0 ? T(java.lang.Math).round(100.0 * lin.total() / maxLinhaTabela) : 0} + '%'"
+                                         th:data-val="${lin.totalFmt}"></div>
+                                </div>
+                                <div class="mc-bar-h-val text-muted" th:text="${lin.totalFmt}">4</div>
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-end gap-3 mt-3 text-muted small">
+                            <span><span class="mc-legend-dot mc-bar-azul"></span> TOTAL</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+</section>
+</html>

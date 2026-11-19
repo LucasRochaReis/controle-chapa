@@ -1,0 +1,28 @@
+# --- Saída de build ---
+target/
+*.class
+
+# --- Logs ---
+*.log
+
+# --- Ambiente e segredos ---
+.env
+.env.*
+!.env.example
+
+# --- Uploads / runtime ---
+uploads/
+uploads-homolog/
+.screenshots/
+
+# --- IDEs e editores ---
+.idea/
+.vscode/
+*.iml
+.settings/
+.project
+.classpath
+
+# --- Sistema operacional ---
+.DS_Store
+Thumbs.db

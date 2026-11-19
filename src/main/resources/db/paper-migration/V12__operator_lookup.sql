@@ -1,0 +1,2 @@
+-- V12: Operador cadastravel via lookup_options (sem seed - cadastro manual em Admin)
+-- Nenhuma alteracao de schema: apenas a categoria OPERATOR existe para o Admin cadastrar.

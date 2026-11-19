@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" th:fragment="layout(title, active, content)">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="ctx" th:content="@{/}">
+    <meta name="_csrf" th:content="${_csrf.token}">
+    <meta name="_csrf_header" th:content="${_csrf.headerName}">
+    <title th:text="${title} + ' · Controle de Chapa'">Controle de Chapa</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/app.css}">
+</head>
+<body class="bg-app">
+<div class="app-shell">
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="d-flex align-items-center justify-content-between gap-3">
+                <div class="sidebar-brand">
+                    <div class="sidebar-logo-icon">CC</div>
+                    <div class="sidebar-logo-text">
+                        <span class="brand-main">Controle</span>
+                        <span class="brand-sub">de Chapa</span>
+                    </div>
+                </div>
+                <button class="sidebar-toggle" type="button" id="sidebarToggle" title="Recolher menu" aria-label="Recolher menu">
+                    <span class="sidebar-toggle-dots" id="sidebarToggleIcon">&lsaquo;</span>
+                </button>
+            </div>
+        </div>
+
+        <nav class="sidebar-nav">
+            <a class="nav-item" th:classappend="${active} == 'entries' or ${active} == 'new-entry' or ${active} == 'home' ? ' active' : ''" th:href="@{/lancamentos}">
+                <span>Lan&ccedil;amentos</span>
+            </a>
+            <a class="nav-item" th:classappend="${active} == 'occurrence-history' or ${active} == 'new-defect' ? ' active' : ''" th:href="@{/historico-ocorrencias}">
+                <span>Ocorr&ecirc;ncias</span>
+            </a>
+            <div sec:authorize="hasAnyRole('ADMIN','GESTOR','VISUALIZADOR','USUARIO')" class="nav-item nav-group" th:classappend="${active} == 'reports' or ${active} == 'reports-dashboard' or ${active} == 'controle-mensal' ? ' open' : ''">
+                <button type="button" class="nav-group-toggle" data-menu-group-toggle>
+                    <span>Relat&oacute;rios</span>
+                </button>
+                <div class="nav-group-collapse" th:classappend="${active} == 'reports' or ${active} == 'reports-dashboard' or ${active} == 'controle-mensal' ? ' show' : ''">
+                    <a class="nav-item nav-subitem" th:classappend="${active} == 'reports-dashboard' ? ' active' : ''" th:href="@{/relatorios/dashboard}">
+                        <span>Dashboard</span>
+                    </a>
+                    <a class="nav-item nav-subitem" th:classappend="${active} == 'reports' ? ' active' : ''" th:href="@{/relatorios}">
+                        <span>Resumo geral</span>
+                    </a>
+                    <a class="nav-item nav-subitem" th:classappend="${active} == 'controle-mensal' ? ' active' : ''" th:href="@{/relatorios/controle-mensal}">
+                        <span>Controle Mensal</span>
+                    </a>
+                </div>
+            </div>
+            <a class="nav-item" sec:authorize="hasRole('ADMIN')" th:classappend="${active} == 'admin-users' ? ' active' : ''" th:href="@{/admin/usuarios}">
+                <span>Usu&aacute;rios</span>
+            </a>
+            <a class="nav-item" sec:authorize="hasRole('ADMIN')" th:classappend="${active} == 'admin-options' ? ' active' : ''" th:href="@{/admin/cadastros}">
+                <span>Cadastros</span>
+            </a>
+        </nav>
+
+        <div class="mt-auto p-4 border-top border-secondary border-opacity-25">
+            <div class="flex-grow-1">
+                <div class="text-white small fw-bold mb-1" sec:authentication="name">Usu&aacute;rio</div>
+                <div class="text-muted small mb-3" sec:authorize="hasRole('ADMIN')">Perfil administrador</div>
+                <div class="text-muted small mb-3" sec:authorize="hasRole('GESTOR')">Perfil gestor</div>
+                <div class="text-muted small mb-3" sec:authorize="hasRole('VISUALIZADOR')">Perfil visualizador</div>
+                <div class="text-muted small mb-3" sec:authorize="hasRole('USUARIO')">Perfil usuario</div>
+            </div>
+            <form th:action="@{/logout}" method="post">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                <button type="submit" class="btn btn-sm btn-outline-light w-100">Sair</button>
+            </form>
+        </div>
+    </aside>
+
+    <main class="content">
+        <div class="content-inner" th:replace="${content}"></div>
+    </main>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script th:src="@{/app.js}"></script>
+</body>
+</html>

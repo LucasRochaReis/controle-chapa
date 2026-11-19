@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org"
+      th:replace="fragments/layout :: layout(${pageTitle}, ${activeMenu}, ~{::section})">
+<section>
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+        <div>
+            <h1 class="h3 mb-1">Importar Lan&ccedil;amentos</h1>
+            <div class="text-muted">Importar lan&ccedil;amentos em massa a partir de planilha Excel (.xlsx ou .xls)</div>
+        </div>
+        <div class="d-flex flex-wrap gap-2">
+            <a class="btn btn-outline-secondary" th:href="@{/lancamentos}">Voltar para Lan&ccedil;amentos</a>
+        </div>
+    </div>
+
+    <div class="alert alert-success" th:if="${success != null}" th:text="${success}"></div>
+    <div class="alert alert-warning" th:if="${warning != null}" th:text="${warning}"></div>
+    <div class="alert alert-danger" th:if="${error != null}" th:text="${error}"></div>
+
+    <div class="row g-3 mb-3">
+        <div class="col-12 col-lg-6">
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h5 class="mb-0">Enviar planilha</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" th:action="@{/lancamentos/importar}" enctype="multipart/form-data">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                        <div class="mb-3">
+                            <label class="form-label">Arquivo Excel (.xlsx ou .xls)</label>
+                            <input class="form-control" type="file" name="file" accept=".xlsx,.xls" required>
+                            <div class="form-text">
+                                Formatos aceitos: Excel 2007+ (.xlsx) e Excel 97-2003 (.xls). Tamanho m&aacute;ximo: 50MB.
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">Importar Lan&ccedil;amentos</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-lg-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Instru&ccedil;&otilde;es e formato da planilha</h5>
+                </div>
+                <div class="card-body">
+                    <p class="mb-3">A planilha deve conter as colunas abaixo na primeira linha (cabe&ccedil;alho). As colunas s&atilde;o case-insensitive.</p>
+
+                    <div class="table-responsive">
+                        <table class="table table-sm table-bordered align-middle mb-3">
+                            <thead class="table-light">
+                            <tr>
+                                <th style="width: 35%;">Coluna</th>
+                                <th>Obrigat&oacute;ria</th>
+                                <th>Descri&ccedil;&atilde;o / Exemplos</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr>
+                                <td><code>Data</code></td>
+                                <td><span class="badge text-bg-danger">Sim</span></td>
+                                <td>Data do lan&ccedil;amento. Ex: <code>08/09/2026</code> ou <code>2026-09-08</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>OP</code></td>
+                                <td><span class="badge text-bg-danger">Sim</span></td>
+                                <td>C&oacute;digo da Ordem de Produ&ccedil;&atilde;o. Ex: <code>OP12345</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>Cliente</code></td>
+                                <td><span class="badge text-bg-danger">Sim</span></td>
+                                <td>Nome do cliente. Ex: <code>Techfiles</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>Quantidade</code></td>
+                                <td><span class="badge text-bg-danger">Sim</span></td>
+                                <td>Quantidade de chapas. Ex: <code>1500</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>Turno</code></td>
+                                <td><span class="badge text-bg-danger">Sim</span></td>
+                                <td>Nome exato do turno cadastrado. Ex: <code>1 Turno</code>, <code>2 Turno</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>Maquina</code></td>
+                                <td><span class="badge text-bg-danger">Sim</span></td>
+                                <td>Nome exato da m&aacute;quina. Ex: <code>Maquina 1</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>Operador</code></td>
+                                <td><span class="badge text-bg-danger">Sim</span></td>
+                                <td>Nome exato do operador cadastrado. Ex: <code>Joao Silva</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>Chapa</code></td>
+                                <td><span class="badge text-bg-danger">Sim</span></td>
+                                <td>Nome exato do tipo de chapa. Ex: <code>TOP</code>, <code>KODAK</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>CTP</code></td>
+                                <td><span class="badge text-bg-danger">Sim</span></td>
+                                <td>Nome exato do CTP. Ex: <code>AGFA</code>, <code>SCREEN</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>Observacoes</code></td>
+                                <td><span class="badge text-bg-secondary">N&atilde;o</span></td>
+                                <td>Campo livre para observa&ccedil;&otilde;es.</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="alert alert-info small mb-0">
+                        <strong>Dica:</strong> Os nomes de Turno, M&aacute;quina, Operador, Chapa e CTP devem ser <u>exatamente iguais</u> aos cadastrados no sistema (em Administra&ccedil;&atilde;o &rarr; Cadastros).
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card" th:if="${importResult != null and importResult.hasErrors()}">
+        <div class="card-header">
+            <h5 class="mb-0">Erros encontrados (<span th:text="${importResult.errorCount}">0</span>)</h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead>
+                    <tr>
+                        <th style="width: 120px;">Linha</th>
+                        <th>Mensagem</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="err : ${importResult.errors}">
+                        <td>
+                            <span class="badge text-bg-warning" th:text="${#strings.substringBefore(err, ':')}">1</span>
+                        </td>
+                        <td th:text="${#strings.substringAfter(err, ': ')}"></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</section>
+</html>

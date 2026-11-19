@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org"
+      th:replace="fragments/layout :: layout(${pageTitle}, ${activeMenu}, ~{::section})">
+<section>
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+        <div>
+            <h1 class="h3 mb-1" th:text="${formTitle}">Nova ocorr&ecirc;ncia</h1>
+            <div class="text-muted">Preencha os dados da ocorr&ecirc;ncia.</div>
+        </div>
+        <a class="btn btn-outline-secondary" th:href="${cancelUrl}">Voltar</a>
+    </div>
+
+    <form class="row g-3" th:attr="action=${formAction}" th:object="${form}" method="post" autocomplete="off">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+        <div class="col-12">
+            <div class="card allow-overflow">
+                <div class="card-header fw-semibold">Dados da ocorr&ecirc;ncia</div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-12 col-md-3">
+                            <label class="form-label">Data</label>
+                            <input class="form-control" type="date" th:field="*{entryDate}">
+                            <div class="text-danger small" th:if="${#fields.hasErrors('entryDate')}" th:errors="*{entryDate}"></div>
+                        </div>
+                        <div class="col-12 col-md-3">
+                            <label class="form-label">Turno</label>
+                            <select class="form-select" th:field="*{shiftId}">
+                                <option value="">Selecione</option>
+                                <option th:each="shift : ${shiftOptions}" th:value="${shift.id}" th:text="${shift.label}"></option>
+                            </select>
+                            <div class="text-danger small" th:if="${#fields.hasErrors('shiftId')}" th:errors="*{shiftId}"></div>
+                        </div>
+                        <div class="col-12 col-md-3">
+                            <label class="form-label">OP</label>
+                            <input class="form-control" type="text" th:field="*{opCode}" placeholder="Ex.: L66690">
+                            <div class="text-danger small" th:if="${#fields.hasErrors('opCode')}" th:errors="*{opCode}"></div>
+                        </div>
+                        <div class="col-12 col-md-3">
+                            <label class="form-label">Cliente</label>
+                            <input class="form-control" type="text" th:field="*{clientName}" list="clientesDatalist"
+                                   placeholder="Digite o nome do cliente" data-cliente-input="true" autocomplete="off">
+                            <div class="text-danger small" th:if="${#fields.hasErrors('clientName')}" th:errors="*{clientName}"></div>
+                        </div>
+                        <div class="col-12 col-md-3">
+                            <label class="form-label">Perda</label>
+                            <input class="form-control" type="number" min="0" step="1" th:field="*{lossQuantity}">
+                            <div class="text-danger small" th:if="${#fields.hasErrors('lossQuantity')}" th:errors="*{lossQuantity}"></div>
+                        </div>
+                        <div class="col-12 col-md-3">
+                            <label class="form-label">C&oacute;digo da ocorr&ecirc;ncia</label>
+                            <select class="form-select" th:field="*{defectCodeId}">
+                                <option value="">Selecione</option>
+                                <option th:each="code : ${defectCodeOptions}" th:value="${code.id}" th:text="${code.label}"></option>
+                            </select>
+                            <div class="text-danger small" th:if="${#fields.hasErrors('defectCodeId')}" th:errors="*{defectCodeId}"></div>
+                        </div>
+                        <div class="col-12 col-md-3">
+                            <label class="form-label">M&aacute;quina</label>
+                            <select class="form-select" th:field="*{machineId}">
+                                <option value="">Selecione</option>
+                                <option th:each="machine : ${machineOptions}" th:value="${machine.id}" th:text="${machine.label}"></option>
+                            </select>
+                            <div class="text-danger small" th:if="${#fields.hasErrors('machineId')}" th:errors="*{machineId}"></div>
+                        </div>
+                        <div class="col-12 col-md-3">
+                            <label class="form-label">Operador</label>
+                            <select class="form-select" th:field="*{operatorId}">
+                                <option value="">Selecione</option>
+                                <option th:each="op : ${operatorOptions}" th:value="${op.id}" th:text="${op.label}"></option>
+                            </select>
+                            <div class="text-danger small" th:if="${#fields.hasErrors('operatorId')}" th:errors="*{operatorId}"></div>
+                        </div>
+                        <div class="col-12 col-md-3">
+                            <label class="form-label">Chapa</label>
+                            <select class="form-select" th:field="*{plateId}">
+                                <option value="">Selecione</option>
+                                <option th:each="plate : ${plateOptions}" th:value="${plate.id}" th:text="${plate.label}"></option>
+                            </select>
+                            <div class="text-danger small" th:if="${#fields.hasErrors('plateId')}" th:errors="*{plateId}"></div>
+                        </div>
+                        <div class="col-12 col-md-3">
+                            <label class="form-label">CTP</label>
+                            <select class="form-select" th:field="*{ctpId}">
+                                <option value="">Selecione</option>
+                                <option th:each="ctp : ${ctpOptions}" th:value="${ctp.id}" th:text="${ctp.label}"></option>
+                            </select>
+                            <div class="text-danger small" th:if="${#fields.hasErrors('ctpId')}" th:errors="*{ctpId}"></div>
+                        </div>
+                        <div class="col-12 col-md-3">
+                            <label class="form-label">Setor</label>
+                            <input class="form-control" type="text" th:field="*{sector}" placeholder="Ex.: CTP, OFFSET, ROTATIVA">
+                            <div class="text-danger small" th:if="${#fields.hasErrors('sector')}" th:errors="*{sector}"></div>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Observa&ccedil;&atilde;o</label>
+                            <textarea class="form-control" rows="3" th:field="*{observations}" placeholder="Descreva o problema"
+                                      data-observacao-input="true" autocomplete="off"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2 mt-3">
+                        <a class="btn btn-outline-secondary" th:href="${cancelUrl}" th:if="${isEditMode}">Cancelar edi&ccedil;&atilde;o</a>
+                        <a class="btn btn-outline-secondary" th:href="@{/historico-ocorrencias}" th:if="${!isEditMode}">Cancelar</a>
+                        <button class="btn btn-primary" type="submit" th:text="${submitLabel}">Salvar ocorr&ecirc;ncia</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</section>
+</html>

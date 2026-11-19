@@ -1,0 +1,16 @@
+insert into lookup_options (category, label, active, sort_order) values
+('DEFECT_CODE', '1 - erro no ctp', true, 1),
+('DEFECT_CODE', '2 - defeito de chapa', true, 2),
+('DEFECT_CODE', '3 - desgaste de chapa', true, 3),
+('DEFECT_CODE', '4 - correcao de fotolito', true, 4),
+('DEFECT_CODE', '5 - erro de fotolito', true, 5),
+('DEFECT_CODE', '6 - falta de energia', true, 6),
+('DEFECT_CODE', '7 - troca de maquina', true, 7),
+('DEFECT_CODE', '8 - recurso de maquina', true, 8),
+('DEFECT_CODE', '9 - retorno em maquina', true, 9),
+('DEFECT_CODE', '10 - problema na Processadora', true, 10),
+('DEFECT_CODE', '11 - Chapa reserva', true, 11),
+('DEFECT_CODE', '12 - Estragou em maquina', true, 12),
+('DEFECT_CODE', '13 - Risco na chapa', true, 13),
+('DEFECT_CODE', '14 - Erro PCP', true, 14),
+('DEFECT_CODE', '15 - A especificar', true, 15);

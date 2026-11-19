@@ -1,0 +1,4 @@
+-- Migration placeholder: Chapa e CTP agora sao cadastros via LookupOption (categorias PLATE e CTP).
+-- Valores sao gerenciados na tela Admin > Cadastros. Nenhum schema change necessario
+-- (as entidades plate_production_entries / plate_defect_entries ja armazenavam
+--  o label da chapa/CTP em colunas TEXTO, e continua assim por compatibilidade).

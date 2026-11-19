@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org"
+      th:replace="fragments/layout :: layout(${pageTitle}, ${activeMenu}, ~{::section})">
+<section>
+    <div class="report-page">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+        <div>
+            <h1 class="h3 mb-1">Relat&oacute;rios</h1>
+        </div>
+        <div class="d-flex flex-wrap gap-2 no-print">
+            <a class="btn btn-outline-secondary" th:href="@{/relatorios}">Limpar</a>
+            <a class="btn btn-success" th:if="${reportGenerated and not #strings.isEmpty(excelUrl)}" th:href="${excelUrl}">Exportar Excel</a>
+            <button class="btn btn-outline-primary" th:if="${reportGenerated}" type="button" onclick="window.print()">Imprimir</button>
+        </div>
+    </div>
+
+    <form class="card mb-3 no-print" method="get" th:action="@{/relatorios}">
+        <input type="hidden" name="gerar" value="true">
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-12 col-md-3">
+                    <label class="form-label">Data inicial</label>
+                    <input class="form-control" type="date" name="dateFrom" th:value="${dateFrom}">
+                </div>
+                <div class="col-12 col-md-3">
+                    <label class="form-label">Data final</label>
+                    <input class="form-control" type="date" name="dateTo" th:value="${dateTo}">
+                </div>
+                <div class="col-12 col-md-2">
+                    <label class="form-label">Turno</label>
+                    <select class="form-select" name="shiftId">
+                        <option value="">Todos</option>
+                        <option th:each="shift : ${shiftOptions}" th:value="${shift.id}" th:text="${shift.label}"
+                                th:selected="${shiftId != null and shiftId == shift.id}"></option>
+                    </select>
+                </div>
+                <div class="col-12 col-md-2">
+                    <label class="form-label">Maquina</label>
+                    <select class="form-select" name="machineId">
+                        <option value="">Todas</option>
+                        <option th:each="machine : ${machineOptions}" th:value="${machine.id}" th:text="${machine.label}"
+                                th:selected="${machineId != null and machineId == machine.id}"></option>
+                    </select>
+                </div>
+                <div class="col-12 col-md-2">
+                    <label class="form-label">CTP</label>
+                    <select class="form-select" name="ctp">
+                        <option value="">Todos</option>
+                        <option th:each="opt : ${ctpOptions}" th:value="${opt.label}" th:text="${opt.label}"
+                                th:selected="${ctp != null and ctp == opt.label}"></option>
+                    </select>
+                </div>
+                <div class="col-12 col-md-2">
+                    <label class="form-label">Tipo</label>
+                    <select class="form-select" name="kind">
+                        <option th:each="opt : ${kindOptions}" th:value="${opt.name()}" th:text="${opt.label}"
+                                th:selected="${kind != null and kind == opt.name()}"></option>
+                    </select>
+                </div>
+
+                <div class="col-12 col-md-3">
+                    <label class="form-label">OP (opcional)</label>
+                    <input class="form-control" type="text" name="opCode" th:value="${opCode}" placeholder="Ex.: OP 12345">
+                </div>
+                <div class="col-12 col-md-3 d-flex align-items-end justify-content-md-end gap-2">
+                    <div class="flex-grow-1 mb-2 mb-md-0">
+                        <label class="form-label">Por p&aacute;gina</label>
+                        <select class="form-select" name="size">
+                            <option value="50" th:selected="${pageSize == 50}">50</option>
+                            <option value="100" th:selected="${pageSize == 100}">100</option>
+                            <option value="200" th:selected="${pageSize == 200}">200</option>
+                            <option value="500" th:selected="${pageSize == 500}">500</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-primary" type="submit">Gerar relat&oacute;rio</button>
+                </div>
+            </div>
+        </div>
+    </form>
+
+    <div th:if="${not reportGenerated}" class="alert alert-info mb-4 no-print" role="alert">
+        <h5 class="alert-heading mb-1">&#128195; Relat&oacute;rio aguardando filtros</h5>
+        <p class="mb-0">Selecione o per&iacute;odo e os filtros desejados acima, depois clique em <strong>Gerar relat&oacute;rio</strong>. Os resultados ser&atilde;o exibidos aqui em seguida, com pagina&ccedil;&atilde;o para n&atilde;o travar a p&aacute;gina.</p>
+    </div>
+
+    <div th:if="${reportGenerated}">
+        <div class="card mb-3 report-section">
+            <div class="card-body py-3">
+                <div class="report-details-grid">
+                    <span><strong>Tipo:</strong> <span th:text="${selectedKindLabel}">Todos</span></span>
+                    <span><strong>Per&iacute;odo:</strong> <span th:text="${(dateFrom != null ? #temporals.format(dateFrom, 'dd/MM/yyyy') : 'Todos') + ' at&eacute; ' + (dateTo != null ? #temporals.format(dateTo, 'dd/MM/yyyy') : 'Todos')}">Todos at&eacute; Todos</span></span>
+                    <span><strong>Turno:</strong>
+                        <span th:if="${shiftId == null}">Todos</span>
+                        <span th:each="shift : ${shiftOptions}" th:if="${shift.id == shiftId}" th:text="${shift.label}">Turno</span>
+                    </span>
+                    <span><strong>Maquina:</strong>
+                        <span th:if="${machineId == null}">Todas</span>
+                        <span th:each="machine : ${machineOptions}" th:if="${machine.id == machineId}" th:text="${machine.label}">Maquina</span>
+                    </span>
+                    <span><strong>CTP:</strong>
+                        <span th:if="${ctp == null or ctp == ''}">Todos</span>
+                        <span th:if="${ctp != null and ctp != ''}" th:text="${ctp}">AGFA</span>
+                    </span>
+                    <span><strong>Gerado em:</strong> <span th:text="${#temporals.format(generatedAt, 'dd/MM/yyyy HH:mm:ss')}">29/07/2026 11:35:22</span></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-3 mb-3 report-kpis">
+            <div class="col-12 col-md-4">
+                <div class="card card-stat h-100">
+                    <div class="card-body">
+                        <div class="stat-label">Total de registros</div>
+                        <div class="stat-value" th:text="${totalCount}">0</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-md-4" th:if="${showPlateProductionStats}">
+                <div class="card card-stat h-100">
+                    <div class="card-body">
+                        <div class="stat-label">Lan&ccedil;amentos</div>
+                        <div class="stat-value" th:text="${plateProductionCount}">0</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-md-4" th:if="${showPlateDefectStats}">
+                <div class="card card-stat h-100">
+                    <div class="card-body">
+                        <div class="stat-label">Ocorr&ecirc;ncias</div>
+                        <div class="stat-value" th:text="${plateDefectCount}">0</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-md-4" th:if="${showPlateProductionStats}">
+                <div class="card card-stat h-100">
+                    <div class="card-body">
+                        <div class="stat-label">Quantidade total de chapas</div>
+                        <div class="stat-value" th:text="${totalPlateQuantity}">0</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-md-4" th:if="${showPlateDefectStats}">
+                <div class="card card-stat h-100">
+                    <div class="card-body">
+                        <div class="stat-label">Perda total (chapa)</div>
+                        <div class="stat-value" th:text="${totalPlateLoss}">0</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card report-section">
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 px-3 pt-3 no-print">
+                <div class="small text-muted">
+                    <span th:if="${totalCount == 0}">Nenhum registro encontrado.</span>
+                    <span th:unless="${totalCount == 0}">Exibindo <strong th:text="${startEntry}">1</strong>–<strong th:text="${endEntry}">100</strong> de <strong th:text="${totalCount}">1.234</strong> &mdash; P&aacute;gina <strong th:text="${currentPage + 1}">1</strong> de <strong th:text="${totalPages}">13</strong></span>
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0 report-table">
+                    <thead>
+                    <tr>
+                        <th>Data / Hor&aacute;rio</th>
+                        <th>Tipo</th>
+                        <th>Turno</th>
+                        <th>M&aacute;quina</th>
+                        <th>OP</th>
+                        <th>Cliente</th>
+                        <th>Operador</th>
+                        <th>Quant.</th>
+                        <th>Perda</th>
+                        <th>C&oacute;digo</th>
+                        <th>Descri&ccedil;&atilde;o da ocorr&ecirc;ncia</th>
+                        <th>Setor</th>
+                        <th>Chapa</th>
+                        <th>CTP</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="entry : ${entries}">
+                        <td>
+                            <div th:text="${entry.entryDate != null ? #temporals.format(entry.entryDate, 'dd/MM/yyyy') : '-'}">01/01/2026</div>
+                            <div class="cell-sub" th:text="${entry.createdAt != null ? #temporals.format(entry.createdAt, 'HH:mm:ss') : '-'}">11:35:22</div>
+                        </td>
+                        <td th:text="${entry.entryKindLabel}">Lan&ccedil;amento</td>
+                        <td th:text="${entry.shiftLabel}">1 Turno</td>
+                        <td th:text="${entry.machineLabel}">M&aacute;quina 1</td>
+                        <td th:text="${entry.opCode != null ? entry.opCode : '-'}">OP001</td>
+                        <td th:text="${entry.clientName != null ? entry.clientName : '-'}">Cliente</td>
+                        <td th:text="${entry.operatorName != null ? entry.operatorName : '-'}">Operador</td>
+                        <td th:text="${entry.quantity != null ? entry.quantity : '-'}">1000</td>
+                        <td th:text="${entry.lossQuantity != null ? entry.lossQuantity : '-'}">10</td>
+                        <td th:text="${entry.defectCode != null ? entry.defectCode : '-'}">1</td>
+                        <td th:text="${entry.defectDescription != null ? entry.defectDescription : '-'}">erro no ctp</td>
+                        <td th:text="${entry.sector != null ? entry.sector : '-'}">OFFSET</td>
+                        <td th:text="${entry.plate != null ? entry.plate : '-'}">TOP</td>
+                        <td th:text="${entry.ctp != null ? entry.ctp : '-'}">AGFA</td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(entries)}">
+                        <td colspan="14" class="text-center text-muted py-4">Nenhum registro encontrado com os filtros informados.</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div th:if="${totalPages gt 1}" class="card-footer d-flex flex-wrap justify-content-between align-items-center gap-3 no-print">
+                <div class="small text-muted">
+                    <span>Exibindo <strong th:text="${startEntry}">1</strong>–<strong th:text="${endEntry}">100</strong> de <strong th:text="${totalCount}">1.234</strong> &mdash; P&aacute;gina <strong th:text="${currentPage + 1}">1</strong> de <strong th:text="${totalPages}">13</strong></span>
+                </div>
+                <nav>
+                    <ul class="pagination pagination-sm mb-0">
+                        <li class="page-item" th:classappend="${hasPrevious} ? '' : 'disabled'">
+                            <a class="page-link" th:if="${hasPrevious}"
+                               th:href="@{/relatorios(gerar=true, page=${currentPage - 1}, size=${pageSize}, dateFrom=${dateFrom}, dateTo=${dateTo}, shiftId=${shiftId}, machineId=${machineId}, kind=${kind}, ctp=${ctp}, opCode=${opCode})}">&laquo; Anterior</a>
+                            <span class="page-link" th:unless="${hasPrevious}">&laquo; Anterior</span>
+                        </li>
+
+                        <li class="page-item" th:if="${currentPage gt 3 and totalPages gt 7}">
+                            <a class="page-link" th:href="@{/relatorios(gerar=true, page=0, size=${pageSize}, dateFrom=${dateFrom}, dateTo=${dateTo}, shiftId=${shiftId}, machineId=${machineId}, kind=${kind}, ctp=${ctp}, opCode=${opCode})}">1</a>
+                        </li>
+                        <li class="page-item disabled" th:if="${currentPage gt 3 and totalPages gt 7}">
+                            <span class="page-link">&hellip;</span>
+                        </li>
+
+                        <li class="page-item" th:each="p : ${paginationWindow}"
+                            th:classappend="${p == currentPage} ? 'active' : ''">
+                            <a class="page-link"
+                               th:href="@{/relatorios(gerar=true, page=${p}, size=${pageSize}, dateFrom=${dateFrom}, dateTo=${dateTo}, shiftId=${shiftId}, machineId=${machineId}, kind=${kind}, ctp=${ctp}, opCode=${opCode})}"
+                               th:text="${p + 1}">1</a>
+                        </li>
+
+                        <li class="page-item disabled" th:if="${totalPages gt 7 and (totalPages - 1 - currentPage) gt 3}">
+                            <span class="page-link">&hellip;</span>
+                        </li>
+                        <li class="page-item" th:if="${totalPages gt 1 and (totalPages - 1 - currentPage) gt 3}">
+                            <a class="page-link" th:text="${totalPages}"
+                               th:href="@{/relatorios(gerar=true, page=${totalPages - 1}, size=${pageSize}, dateFrom=${dateFrom}, dateTo=${dateTo}, shiftId=${shiftId}, machineId=${machineId}, kind=${kind}, ctp=${ctp}, opCode=${opCode})}">N</a>
+                        </li>
+
+                        <li class="page-item" th:classappend="${hasNext} ? '' : 'disabled'">
+                            <a class="page-link" th:if="${hasNext}"
+                               th:href="@{/relatorios(gerar=true, page=${currentPage + 1}, size=${pageSize}, dateFrom=${dateFrom}, dateTo=${dateTo}, shiftId=${shiftId}, machineId=${machineId}, kind=${kind}, ctp=${ctp}, opCode=${opCode})}">Pr&oacute;xima &raquo;</a>
+                            <span class="page-link" th:unless="${hasNext}">Pr&oacute;xima &raquo;</span>
+                        </li>
+                    </ul>
+                </nav>
+                <form class="d-flex gap-2 align-items-center report-ir-form no-print" method="get" th:action="@{/relatorios}">
+                    <input type="hidden" name="gerar" value="true">
+                    <input type="hidden" name="size" th:value="${pageSize}">
+                    <input type="hidden" name="dateFrom" th:value="${dateFrom}">
+                    <input type="hidden" name="dateTo" th:value="${dateTo}">
+                    <input type="hidden" name="shiftId" th:value="${shiftId}">
+                    <input type="hidden" name="machineId" th:value="${machineId}">
+                    <input type="hidden" name="kind" th:value="${kind}">
+                    <input type="hidden" name="ctp" th:value="${ctp}">
+                    <input type="hidden" name="opCode" th:value="${opCode}">
+                    <label class="small text-muted mb-0">Ir para p&aacute;gina:</label>
+                    <input type="number" name="page1Based" min="1" th:max="${totalPages}" class="form-control form-control-sm" style="width:80px" required>
+                    <button class="btn btn-sm btn-outline-secondary" type="submit">Ir</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    </div>
+    <script th:inline="javascript">
+        document.addEventListener('DOMContentLoaded', function () {
+            document.querySelectorAll('.report-ir-form').forEach(function (form) {
+                form.addEventListener('submit', function (ev) {
+                    var inp = form.querySelector('input[name="page1Based"]');
+                    if (inp) {
+                        var n = parseInt(inp.value, 10);
+                        if (!isNaN(n) && n >= 1) {
+                            var out = document.createElement('input');
+                            out.type = 'hidden';
+                            out.name = 'page';
+                            out.value = String(n - 1);
+                            form.appendChild(out);
+                            inp.name = '_ignored';
+                        }
+                    }
+                });
+            });
+        });
+    </script>
+</section>
+</html>

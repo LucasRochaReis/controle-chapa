@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org"
+      th:replace="fragments/layout :: layout('Dashboard', 'dashboard', ~{::section})">
+<section>
+    <div class="d-flex flex-wrap align-items-start justify-content-between gap-3 mb-4">
+        <div>
+            <h1 class="h3 fw-bold mb-1">Dashboard - An&aacute;lise</h1>
+            <p class="text-muted mb-0">
+                <strong th:text="${dashboard.nomeMesAno}">Agosto / 2026</strong>
+            </p>
+        </div>
+        <div class="d-flex flex-wrap gap-2 align-items-end">
+            <a class="btn btn-primary" sec:authorize="!hasRole('VISUALIZADOR')" th:href="@{/chapas/novo}">Novo Lancamento</a>
+            <a class="btn btn-outline-primary" sec:authorize="!hasRole('VISUALIZADOR')" th:href="@{/ocorrencias/novo}">Nova Ocorrencia</a>
+        </div>
+    </div>
+
+    <div class="card mb-4 no-print" th:if="${isGestorOuAdmin or isVisualizador}">
+        <div class="card-header">
+            <ul class="nav nav-tabs card-header-tabs" id="dashFiltroTab" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link"
+                            th:classappend="${not modoIntervalo} ? 'active' : ''"
+                            type="button" data-bs-toggle="tab" data-bs-target="#dash-tab-mes" role="tab" aria-controls="dash-tab-mes" aria-selected="true">Por M&ecirc;s</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link"
+                            th:classappend="${modoIntervalo} ? 'active' : ''"
+                            type="button" data-bs-toggle="tab" data-bs-target="#dash-tab-intervalo" role="tab" aria-controls="dash-tab-intervalo" aria-selected="false">Intervalo Customizado</button>
+                </li>
+            </ul>
+        </div>
+        <div class="card-body">
+            <div class="tab-content" id="dashFiltroTabContent">
+                <div class="tab-pane fade" th:classappend="${not modoIntervalo} ? 'show active' : ''" id="dash-tab-mes" role="tabpanel" aria-labelledby="dash-tab-mes">
+                    <form method="get" th:action="@{/relatorios/dashboard}" class="d-flex flex-wrap align-items-end gap-2">
+                        <div style="min-width: 320px;">
+                            <label class="small text-muted d-block mb-1">M&ecirc;s da an&aacute;lise:</label>
+                            <select class="form-select" name="mes" onchange="this.form.submit()">
+                                <option
+                                        th:each="opt : ${opcoesMeses}"
+                                        th:value="${opt.value}"
+                                        th:text="${opt.label}"
+                                        th:selected="${opt.value eq mes}"></option>
+                            </select>
+                        </div>
+                        <button class="btn btn-primary" type="submit">Atualizar</button>
+                        <noscript>
+                            <button class="btn btn-outline-secondary" type="submit">Aplicar</button>
+                        </noscript>
+                    </form>
+                </div>
+                <div class="tab-pane fade" th:classappend="${modoIntervalo} ? 'show active' : ''" id="dash-tab-intervalo" role="tabpanel" aria-labelledby="dash-tab-intervalo">
+                    <form method="get" th:action="@{/relatorios/dashboard}" class="row g-3 align-items-end mb-0">
+                        <div class="col-12 col-md-4">
+                            <label class="small text-muted d-block mb-1">Data inicial:</label>
+                            <input class="form-control" type="date" name="dateFrom" th:value="${dateFrom}" required>
+                        </div>
+                        <div class="col-12 col-md-4">
+                            <label class="small text-muted d-block mb-1">Data final:</label>
+                            <input class="form-control" type="date" name="dateTo" th:value="${dateTo}" required>
+                        </div>
+                        <div class="col-12 col-md-4 d-flex gap-2">
+                            <button class="btn btn-primary" type="submit">Atualizar</button>
+                            <a class="btn btn-outline-secondary" th:href="@{/relatorios/dashboard}">Limpar</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row row-cols-2 row-cols-md-3 row-cols-lg-5 g-3 mb-4">
+        <div>
+            <div class="card stat-card stat-card-total h-100">
+                <div class="card-body">
+                    <div class="stat-label">Total de lan&ccedil;amentos</div>
+                    <div class="stat-value" th:text="${dashboard.totalLancamentosFmt}">1.234</div>
+                </div>
+            </div>
+        </div>
+        <div>
+            <div class="card stat-card stat-card-success h-100">
+                <div class="card-body">
+                    <div class="stat-label">Produ&ccedil;&otilde;es</div>
+                    <div class="stat-value" th:text="${dashboard.totalProducoesFmt}">0</div>
+                    <div class="stat-sub" th:text="${dashboard.percentualProducoesFmt} + '% do total'">0,0% do total</div>
+                </div>
+            </div>
+        </div>
+        <div>
+            <div class="card stat-card stat-card-danger h-100">
+                <div class="card-body">
+                    <div class="stat-label">Ocorr&ecirc;ncias</div>
+                    <div class="stat-value" th:text="${dashboard.totalOcorrenciasFmt}">0</div>
+                    <div class="stat-sub" th:text="${dashboard.percentualOcorrenciasFmt} + '% do total'">0,0% do total</div>
+                </div>
+            </div>
+        </div>
+        <div>
+            <div class="card stat-card stat-card-success-light h-100">
+                <div class="card-body">
+                    <div class="stat-label">Chapas produzidas</div>
+                    <div class="stat-value" th:text="${dashboard.totalChapasProduzidasFmt}">16.849</div>
+                </div>
+            </div>
+        </div>
+        <div>
+            <div class="card stat-card stat-card-info h-100">
+                <div class="card-body">
+                    <div class="stat-label">Chapas perdidas</div>
+                    <div class="stat-value" th:text="${dashboard.totalChapasPerdidasFmt}">0</div>
+                    <div class="stat-sub" th:text="${dashboard.percentualPerdasFmt} + '% do produzido'">0,0% do produzido</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-12 col-lg-10 mx-auto">
+            <div class="card stat-card stat-card-hero">
+                <div class="card-header text-center">
+                    <h2 class="h4 fw-bold mb-1">Perdas vs Produ&ccedil;&otilde;es</h2>
+                    <p class="small text-muted mb-0">Chapas produzidas x chapas perdidas no per&iacute;odo</p>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex flex-wrap align-items-center justify-content-evenly gap-5">
+                        <div class="donut-chart donut-chart-xl"
+                             th:style="'--p-success:' + ${100 - dashboard.progressoPerdaPct} + '%; --p-fail:' + ${dashboard.progressoPerdaPct} + '%'">
+                            <div class="donut-chart-inner">
+                                <div class="donut-chart-value" th:text="${dashboard.perdaCentroDonutFmt} + '%'">5,2%</div>
+                                <div class="donut-chart-label">perdas</div>
+                            </div>
+                        </div>
+                        <div style="min-width: 300px;">
+                            <div class="legend mb-3">
+                                <span class="legend-dot legend-success legend-dot-lg"></span>
+                                <span class="fw-semibold">Produ&ccedil;&otilde;es:</span>
+                                <span class="d-block mt-1 ms-4"
+                                      th:text="${dashboard.totalChapasProduzidasFmt} + ' chapas (' + ${dashboard.percentualProduzidasFmt} + '%)'">16.849 chapas (94,8%)</span>
+                            </div>
+                            <div class="legend mb-3">
+                                <span class="legend-dot legend-danger legend-dot-lg"></span>
+                                <span class="fw-semibold">Perdas:</span>
+                                <span class="d-block mt-1 ms-4"
+                                      th:text="${dashboard.totalChapasPerdidasFmt} + ' chapas (' + ${dashboard.percentualPerdasFmt} + '%)'">928 chapas (5,2%)</span>
+                            </div>
+                            <hr class="my-3">
+                            <div class="legend">
+                                <span class="legend-dot legend-info legend-dot-lg"></span>
+                                <span class="fw-semibold">Perdas totais:</span>
+                                <span class="d-block mt-1 ms-4"
+                                      th:text="${dashboard.totalChapasPerdidasFmt} + ' chapas'">928 chapas</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header d-flex flex-wrap align-items-center justify-content-between gap-2">
+            <div>
+                <h3 class="h6 fw-bold mb-0">Lan&ccedil;amentos recentes</h3>
+                <p class="small text-muted mb-0" th:text="'&Uacute;ltimos ' + ${recentes.size()} + ' registros (Lan&ccedil;amento e Ocorr&ecirc;ncia)'">&Uacute;ltimos 10 registros</p>
+            </div>
+            <div class="d-flex gap-2">
+                <a class="btn btn-sm btn-outline-primary" th:href="@{/lancamentos}">Ver todos lan&ccedil;amentos</a>
+                <a class="btn btn-sm btn-outline-danger" th:href="@{/historico-ocorrencias}">Ver ocorr&ecirc;ncias</a>
+            </div>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover table-nowrap align-middle mb-0">
+                <thead>
+                <tr>
+                    <th>Data</th>
+                    <th>Tipo</th>
+                    <th>Chapa</th>
+                    <th>CTP</th>
+                    <th>M&aacute;quina</th>
+                    <th>Qtd</th>
+                    <th>Perda</th>
+                    <th>Usu&aacute;rio</th>
+                    <th>Detalhe</th>
+                    <th></th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="r : ${recentes}">
+                    <td th:text="${r.dataFormatada}">14/08/2026 08:30</td>
+                    <td>
+                        <span class="badge bg-success rounded-pill" th:if="${r.tipo eq 'Producao'}">Lan&ccedil;amento</span>
+                        <span class="badge bg-danger rounded-pill" th:unless="${r.tipo eq 'Producao'}">Ocorr&ecirc;ncia</span>
+                    </td>
+                    <td th:text="${r.chapa}">Chapa A</td>
+                    <td th:text="${r.ctp}">CTP 1</td>
+                    <td th:text="${r.maquina}">M&aacute;quina 01</td>
+                    <td th:if="${r.quantidade ne null}" th:text="${r.quantidade}">10</td>
+                    <td th:if="${r.quantidade eq null}">-</td>
+                    <td th:if="${r.perdas ne null}" th:text="${r.perdas}">2</td>
+                    <td th:if="${r.perdas eq null}">-</td>
+                    <td th:text="${r.usuario}">admin</td>
+                    <td class="text-truncate" style="max-width: 220px;" th:text="${r.detalhe}">Cliente X</td>
+                    <td class="text-end">
+                        <a class="btn btn-sm btn-outline-secondary" th:href="@{${r.url}}">Abrir</a>
+                    </td>
+                </tr>
+                <tr th:if="${recentes eq null or recentes.isEmpty()}">
+                    <td colspan="10" class="text-center py-5 text-muted">
+                        Nenhum lancamento encontrado no periodo.
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+</html>

@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org"
+      th:replace="fragments/layout :: layout(${pageTitle}, ${activeMenu}, ~{::section})">
+<section>
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+        <div>
+            <h1 class="h3 mb-1">Ocorr&ecirc;ncias</h1>
+            <div class="text-muted">Ocorr&ecirc;ncias cadastradas no sistema</div>
+        </div>
+        <div class="d-flex flex-wrap gap-2">
+            <a class="btn btn-outline-secondary" sec:authorize="hasRole('ADMIN')" th:href="@{/historico-ocorrencias/importar}">Importar Planilha</a>
+            <a class="btn btn-danger" sec:authorize="!hasRole('VISUALIZADOR')" th:href="@{/ocorrencias/novo}">Nova Ocorr&ecirc;ncia</a>
+        </div>
+    </div>
+
+    <div class="alert alert-success" th:if="${success != null}" th:text="${success}"></div>
+
+    <div class="row g-3 mb-3">
+        <div class="col-12 col-md-4">
+            <div class="card card-stat h-100">
+                <div class="card-body">
+                    <div class="stat-label">Ocorr&ecirc;ncias de hoje</div>
+                    <div class="stat-value" th:text="${todayCount}">0</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-md-8"></div>
+    </div>
+
+    <form class="card mb-3" method="get" th:action="@{/historico-ocorrencias}">
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-12 col-md-3">
+                    <label class="form-label">Data inicial</label>
+                    <input class="form-control" type="date" name="dateFrom" th:value="${dateFrom}">
+                </div>
+                <div class="col-12 col-md-3">
+                    <label class="form-label">Data final</label>
+                    <input class="form-control" type="date" name="dateTo" th:value="${dateTo}">
+                </div>
+                <div class="col-12 col-md-2">
+                    <label class="form-label">Turno</label>
+                    <select class="form-select" name="shiftId">
+                        <option value="">Todos</option>
+                        <option th:each="shift : ${shiftOptions}" th:value="${shift.id}" th:text="${shift.label}" th:selected="${shiftId != null and shiftId == shift.id}"></option>
+                    </select>
+                </div>
+                <div class="col-12 col-md-2">
+                    <label class="form-label">M&aacute;quina</label>
+                    <select class="form-select" name="machineId">
+                        <option value="">Todas</option>
+                        <option th:each="machine : ${machineOptions}" th:value="${machine.id}" th:text="${machine.label}" th:selected="${machineId != null and machineId == machine.id}"></option>
+                    </select>
+                </div>
+                <div class="col-12 col-md-2">
+                    <label class="form-label">OP</label>
+                    <input class="form-control" type="text" name="opCode" th:value="${opCode}" placeholder="Buscar OP">
+                </div>
+                <div class="col-12 col-md-3">
+                    <label class="form-label">Cliente</label>
+                    <input class="form-control" type="text" name="clientName" th:value="${clientName}" placeholder="Buscar cliente">
+                </div>
+                <div class="col-12 col-md-2">
+                    <label class="form-label">Por p&aacute;gina</label>
+                    <select class="form-select" name="size">
+                        <option value="20" th:selected="${pageSize == 20}">20</option>
+                        <option value="50" th:selected="${pageSize == 50}">50</option>
+                        <option value="100" th:selected="${pageSize == 100}">100</option>
+                        <option value="200" th:selected="${pageSize == 200}">200</option>
+                    </select>
+                </div>
+            </div>
+            <div class="d-flex justify-content-end gap-2 mt-3">
+                <a class="btn btn-outline-secondary" th:href="@{/historico-ocorrencias}">Limpar filtros</a>
+                <button class="btn btn-primary" type="submit">Filtrar</button>
+            </div>
+        </div>
+    </form>
+
+    <div class="card">
+        <div class="card-header d-flex flex-wrap align-items-center justify-content-between gap-2 py-2">
+            <div class="small text-muted">
+                <span th:if="${totalElements != null and totalPages != null and currentPage != null and pageSize != null}">
+                    <th:block th:with="start=${totalElements == 0 ? 0 : (currentPage * pageSize) + 1}, endCandidate=${(currentPage * pageSize) + pageSize}">
+                        Exibindo
+                        <strong th:text="${start}">1</strong>
+                        -
+                        <strong th:text="${endCandidate < totalElements ? endCandidate : totalElements}">50</strong>
+                        de
+                        <strong th:text="${totalElements}">500</strong>
+                        ocorr&ecirc;ncias
+                        &mdash;
+                        P&aacute;gina <strong th:text="${currentPage + 1}">1</strong> de <strong th:text="${totalPages}">10</strong>
+                    </th:block>
+                </span>
+            </div>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead>
+                <tr>
+                    <th>Data / Hor&aacute;rio</th>
+                    <th>Turno</th>
+                    <th>M&aacute;quina</th>
+                    <th>OP</th>
+                    <th>Cliente</th>
+                    <th>Operador</th>
+                    <th>Perda</th>
+                    <th>C&oacute;d.</th>
+                    <th>Descri&ccedil;&atilde;o ocorr&ecirc;ncia</th>
+                    <th>Setor</th>
+                    <th>Chapa</th>
+                    <th>CTP</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="entry : ${entries}" class="clickable-row" th:attr="data-href=${entry.openUrl}">
+                    <td>
+                        <div th:text="${#temporals.format(entry.entryDate, 'dd/MM/yyyy')}">01/01/2026</div>
+                        <div class="cell-sub" th:text="${entry.createdAt != null ? #temporals.format(entry.createdAt, 'HH:mm:ss') : '-'}">11:35:22</div>
+                    </td>
+                    <td th:text="${entry.shiftLabel}">1 Turno</td>
+                    <td th:text="${entry.machineLabel}">M&aacute;quina 1</td>
+                    <td th:text="${entry.opCode != null ? entry.opCode : '-'}">OP001</td>
+                    <td th:text="${entry.clientName != null ? entry.clientName : '-'}">Cliente</td>
+                    <td th:text="${entry.operatorName != null ? entry.operatorName : '-'}">Operador</td>
+                    <td th:text="${entry.lossQuantity != null ? entry.lossQuantity : '-'}">10</td>
+                    <td th:text="${entry.defectCode != null ? entry.defectCode : '-'}">1</td>
+                    <td th:text="${entry.defectDescription != null ? entry.defectDescription : '-'}">erro no ctp</td>
+                    <td th:text="${entry.sector != null ? entry.sector : '-'}">OFFSET</td>
+                    <td th:text="${entry.plate != null ? entry.plate : '-'}">TOP</td>
+                    <td th:text="${entry.ctp != null ? entry.ctp : '-'}">AGFA</td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(entries)}">
+                    <td colspan="12" class="text-center text-muted py-4">Nenhuma ocorr&ecirc;ncia encontrada.</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <div th:if="${totalPages != null and totalPages > 1}" class="card-footer d-flex flex-wrap align-items-center justify-content-between gap-3">
+            <nav aria-label="Pagina ocorrencias">
+                <ul class="pagination pagination-sm mb-0">
+                    <li class="page-item" th:classappend="${!hasPrevious} ? 'disabled'">
+                        <a class="page-link" th:if="${hasPrevious}"
+                           th:href="@{/historico-ocorrencias(page=${currentPage - 1}, size=${pageSize}, dateFrom=${dateFrom}, dateTo=${dateTo}, shiftId=${shiftId}, machineId=${machineId}, opCode=${opCode}, clientName=${clientName})}">&laquo; Anterior</a>
+                        <span class="page-link" th:if="${!hasPrevious}">&laquo; Anterior</span>
+                    </li>
+
+                    <li class="page-item" th:each="p, i : ${pagesToShow}" th:classappend="${p == null} ? 'disabled' : (${p == currentPage} ? 'active')">
+                        <span class="page-link" th:if="${p == null}">&hellip;</span>
+                        <a class="page-link" th:if="${p != null and p != currentPage}"
+                           th:href="@{/historico-ocorrencias(page=${p}, size=${pageSize}, dateFrom=${dateFrom}, dateTo=${dateTo}, shiftId=${shiftId}, machineId=${machineId}, opCode=${opCode}, clientName=${clientName})}"
+                           th:text="${p + 1}">1</a>
+                        <span class="page-link" th:if="${p != null and p == currentPage}" th:text="${p + 1}">1</span>
+                    </li>
+
+                    <li class="page-item" th:classappend="${!hasNext} ? 'disabled'">
+                        <a class="page-link" th:if="${hasNext}"
+                           th:href="@{/historico-ocorrencias(page=${currentPage + 1}, size=${pageSize}, dateFrom=${dateFrom}, dateTo=${dateTo}, shiftId=${shiftId}, machineId=${machineId}, opCode=${opCode}, clientName=${clientName})}">Pr&oacute;xima &raquo;</a>
+                        <span class="page-link" th:if="${!hasNext}">Pr&oacute;xima &raquo;</span>
+                    </li>
+                </ul>
+            </nav>
+            <div class="small text-muted">
+                <form class="d-inline-flex align-items-center gap-2" method="get" th:action="@{/historico-ocorrencias}">
+                    <input type="hidden" name="dateFrom" th:value="${dateFrom}">
+                    <input type="hidden" name="dateTo" th:value="${dateTo}">
+                    <input type="hidden" name="shiftId" th:value="${shiftId}">
+                    <input type="hidden" name="machineId" th:value="${machineId}">
+                    <input type="hidden" name="opCode" th:value="${opCode}">
+                    <input type="hidden" name="clientName" th:value="${clientName}">
+                    Ir para p&aacute;gina:
+                    <input type="number" min="1" class="form-control form-control-sm" style="width: 80px;" name="page" th:value="${currentPage + 1}">
+                    <input type="hidden" name="size" th:value="${pageSize}">
+                    <button class="btn btn-sm btn-outline-primary" type="submit">Ir</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+</html>
